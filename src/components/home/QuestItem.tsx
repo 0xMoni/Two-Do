@@ -14,10 +14,11 @@ interface QuestItemProps {
   onComplete: () => void;
   onPress: () => void;
   onDelete: () => void;
+  onUndo?: () => void;
   isOwner: boolean;
 }
 
-export function QuestItem({ quest, onComplete, onPress, onDelete, isOwner }: QuestItemProps) {
+export function QuestItem({ quest, onComplete, onPress, onDelete, onUndo, isOwner }: QuestItemProps) {
   const { colors } = useThemeContext();
   const isCompleted = quest.status === 'completed';
   const isPast = isDueDatePast(quest.dueDate);
@@ -36,12 +37,38 @@ export function QuestItem({ quest, onComplete, onPress, onDelete, isOwner }: Que
   };
 
   const renderLeftActions = (_progress: Animated.AnimatedInterpolation<number>, dragX: Animated.AnimatedInterpolation<number>) => {
-    if (isCompleted || !isOwner) return null;
+    if (!isOwner) return null;
     const scale = dragX.interpolate({
       inputRange: [0, 80],
       outputRange: [0.5, 1],
       extrapolate: 'clamp',
     });
+
+    if (isCompleted && onUndo) {
+      return (
+        <TouchableOpacity
+          onPress={() => {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+            onUndo();
+          }}
+          style={{
+            backgroundColor: colors.gold,
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: 80,
+            borderRadius: 4,
+            marginBottom: 10,
+          }}
+        >
+          <Animated.View style={{ transform: [{ scale }] }}>
+            <PixelText size="xs" color="#fff">Undo</PixelText>
+          </Animated.View>
+        </TouchableOpacity>
+      );
+    }
+
+    if (isCompleted) return null;
+
     return (
       <TouchableOpacity
         onPress={() => {
@@ -71,6 +98,29 @@ export function QuestItem({ quest, onComplete, onPress, onDelete, isOwner }: Que
       outputRange: [1, 0.5],
       extrapolate: 'clamp',
     });
+
+    if (isCompleted) {
+      return (
+        <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+          <TouchableOpacity
+            onPress={onDelete}
+            style={{
+              backgroundColor: colors.danger,
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: 70,
+              borderRadius: 4,
+              marginLeft: 4,
+            }}
+          >
+            <Animated.View style={{ transform: [{ scale }] }}>
+              <PixelText size="xs" color="#fff">Delete</PixelText>
+            </Animated.View>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
     return (
       <View style={{ flexDirection: 'row', marginBottom: 10 }}>
         <TouchableOpacity

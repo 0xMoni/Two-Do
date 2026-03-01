@@ -11,9 +11,10 @@ interface QuestListProps {
   onComplete: (quest: Quest) => void;
   onEdit: (quest: Quest) => void;
   onDelete: (quest: Quest) => void;
+  onUndo?: (quest: Quest) => void;
 }
 
-export function QuestList({ quests, currentUserId, onComplete, onEdit, onDelete }: QuestListProps) {
+export function QuestList({ quests, currentUserId, onComplete, onEdit, onDelete, onUndo }: QuestListProps) {
   const { colors } = useThemeContext();
 
   if (quests.length === 0) {
@@ -60,6 +61,7 @@ export function QuestList({ quests, currentUserId, onComplete, onEdit, onDelete 
           onComplete={() => onComplete(item)}
           onPress={() => onEdit(item)}
           onDelete={() => onDelete(item)}
+          onUndo={onUndo ? () => onUndo(item) : undefined}
         />
       )}
       scrollEnabled={false}

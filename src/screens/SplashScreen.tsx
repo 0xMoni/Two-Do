@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, ActivityIndicator, Image, SafeAreaView } from 'react-native';
-import { PixelText } from '../components/common/PixelText';
+import { View, ActivityIndicator, Image, SafeAreaView, Text } from 'react-native';
 
 // Light theme colors used directly since SplashScreen renders before ThemeProvider
 const SPLASH_COLORS = {
@@ -30,12 +29,12 @@ export function SplashScreen() {
           style={{ width: 80, height: 80, marginBottom: 16 }}
           resizeMode="contain"
         />
-        <PixelText size="xl" color={SPLASH_COLORS.gold}>
+        <Text style={{ fontSize: 28, fontWeight: '900', color: SPLASH_COLORS.gold, letterSpacing: 2 }}>
           Two-Do
-        </PixelText>
-        <PixelText size="xs" color={SPLASH_COLORS.textSecondary} style={{ marginTop: 12 }}>
+        </Text>
+        <Text style={{ fontSize: 12, color: SPLASH_COLORS.textSecondary, marginTop: 12 }}>
           Loading quest data...
-        </PixelText>
+        </Text>
         <ActivityIndicator color={SPLASH_COLORS.gold} style={{ marginTop: 24 }} size="large" />
       </View>
     </SafeAreaView>

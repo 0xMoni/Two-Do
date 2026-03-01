@@ -113,10 +113,21 @@ export function HomeScreen({ navigation }: any) {
     }
   };
 
-  const handleUndo = async () => {
+  const handleUndoFromToast = async () => {
     if (!duo || !user || !completeToast) return;
     try {
       await uncompleteQuest(duo.id, completeToast.questId, user.uid, completeToast.xp);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    } catch {
+      Alert.alert('Error', 'Failed to undo quest');
+    }
+  };
+
+  const handleUndoQuest = async (quest: Quest) => {
+    if (!duo || !user) return;
+    const xpToDeduct = quest.earnedXp || 0;
+    try {
+      await uncompleteQuest(duo.id, quest.id, user.uid, xpToDeduct);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     } catch {
       Alert.alert('Error', 'Failed to undo quest');
@@ -271,6 +282,7 @@ export function HomeScreen({ navigation }: any) {
                 onComplete={handleComplete}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onUndo={handleUndoQuest}
               />
             )}
           </View>
@@ -378,7 +390,7 @@ export function HomeScreen({ navigation }: any) {
         xp={completeToast?.xp ?? 0}
         streak={completeToast?.streak ?? 0}
         onDone={() => setCompleteToast(null)}
-        onUndo={handleUndo}
+        onUndo={handleUndoFromToast}
       />
 
       {/* Level Up Modal */}
