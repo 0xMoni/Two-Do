@@ -11,7 +11,6 @@ A gamified RPG-themed to-do app for duos — couples, friends, or long-distance 
 - **Achievements** — Unlock 15 achievements based on milestones (quests completed, streaks, XP earned, and more)
 - **Categories** — Organize quests by category (Daily, Errands, Self-Care, Fitness, etc.) with custom category support
 - **Affection Counter** — Send hearts, letters, or chocolates to your partner with a real-time tap counter
-- **Anniversary Tracker** — Track how long you've been together (couples only)
 - **Confetti Celebrations** — Animated confetti and toast on quest completion
 - **Quest History** — View completed quests separately with earned XP
 - **Swipe Actions** — Swipe right to complete, swipe left to edit or delete quests
