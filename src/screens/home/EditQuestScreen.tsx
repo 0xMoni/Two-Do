@@ -190,7 +190,7 @@ export function EditQuestScreen({ route, navigation }: any) {
                     onPress: async () => {
                       if (!duo || !user) return;
                       try {
-                        await uncompleteQuest(duo.id, questId, user.uid, quest.earnedXp || 0);
+                        await uncompleteQuest(duo.id, questId, quest.assignedTo, quest.earnedXp || PRIORITY_XP[quest.priority] || 0);
                         navigation.goBack();
                       } catch {
                         Alert.alert('Error', 'Failed to undo quest');

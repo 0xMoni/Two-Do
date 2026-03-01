@@ -11,10 +11,12 @@ A gamified RPG-themed to-do app for duos — couples, friends, or long-distance 
 - **Achievements** — Unlock 15 achievements based on milestones (quests completed, streaks, XP earned, and more)
 - **Categories** — Organize quests by category (Daily, Errands, Self-Care, Fitness, etc.) with custom category support
 - **Affection Counter** — Send hearts, letters, or chocolates to your partner with a real-time tap counter
-- **Undo Quest Completion** — Accidentally completed? Tap Undo on the toast to revert instantly
+- **Undo Quest Completion** — Undo from the toast, swipe on completed quests, or from the edit screen — XP is properly deducted
+- **Shared Quest Control** — Either partner can complete, edit, undo, or delete any quest
+- **XP Clamping** — XP never goes below 0, even after undo or expired penalties
 - **Confetti Celebrations** — Animated confetti and toast on quest completion
-- **Quest History** — View completed quests separately with earned XP
-- **Swipe Actions** — Swipe right to complete, swipe left to edit or delete quests
+- **Quest History** — Always-visible history toggle to view completed quests with earned XP
+- **Swipe Actions** — Swipe right to complete (or undo), swipe left to edit or delete quests
 - **Pull to Refresh** — Pull down to refresh and check for expired quests
 - **Push Notifications** — Due date reminders and local notifications
 - **Duo Types** — Choose between Couple, Friends, or Long-Distance modes with themed interactions
@@ -82,7 +84,7 @@ Two-Do/
 │   │   ├── auth/              # Login & Signup
 │   │   ├── home/              # Quest Log, Add/Edit Quest
 │   │   ├── profile/           # Character Sheet
-│   │   ├── onboarding/        # 4-screen onboarding flow
+│   │   ├── onboarding/        # 5-screen onboarding flow (incl. swipe tutorial)
 │   │   ├── PairingScreen.tsx  # Duo pairing via code/QR
 │   │   └── SplashScreen.tsx   # Loading screen
 │   ├── components/

@@ -161,7 +161,7 @@ export function QuestCompleteToast({ visible, xp, streak, onDone, onUndo }: Ques
         )}
         {onUndo && (
           <TouchableOpacity
-            onPress={() => { onUndo(); onDone(); }}
+            onPress={async () => { await onUndo(); onDone(); }}
             activeOpacity={0.7}
             style={{
               marginTop: 10,
