@@ -125,6 +125,7 @@ export type AuthStackParamList = {
 export type OnboardingStackParamList = {
   Welcome: undefined;
   QuestsExplain: undefined;
+  SwipeExplain: undefined;
   DuoExplain: undefined;
   HeartsExplain: undefined;
 };

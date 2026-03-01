@@ -13,7 +13,7 @@ export function QuestsExplainScreen({ navigation }: any) {
         description="Create quests for yourself or your partner. Each quest has a difficulty that determines how much XP you earn. Complete them to level up!"
       />
       <View style={{ paddingHorizontal: 32, paddingBottom: 48 }}>
-        <RPGButton title="Next" onPress={() => navigation.navigate('DuoExplain')} variant="gold" size="lg" />
+        <RPGButton title="Next" onPress={() => navigation.navigate('SwipeExplain')} variant="gold" size="lg" />
       </View>
     </View>
   );
