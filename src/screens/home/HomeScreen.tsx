@@ -14,7 +14,7 @@ import { useAuthContext } from '../../contexts/AuthContext';
 import { useDuoContext } from '../../contexts/DuoContext';
 import { useQuests } from '../../lib/useQuests';
 import { completeQuestWithStreak, softDeleteQuest, uncompleteQuest } from '../../lib/questService';
-import { DEFAULT_CATEGORIES } from '../../lib/constants';
+import { DEFAULT_CATEGORIES, PRIORITY_XP } from '../../lib/constants';
 import { Quest, Category } from '../../types';
 import { checkExpiredQuests } from '../../lib/expiredQuestChecker';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
@@ -96,6 +96,7 @@ export function HomeScreen({ navigation }: any) {
 
   const handleComplete = async (quest: Quest) => {
     if (!duo || !user) return;
+    lastCompletedQuest.current = quest;
     try {
       const { earnedXp, newStreak } = await completeQuestWithStreak(
         duo.id,
@@ -113,10 +114,12 @@ export function HomeScreen({ navigation }: any) {
     }
   };
 
+  const lastCompletedQuest = useRef<Quest | null>(null);
+
   const handleUndoFromToast = async () => {
-    if (!duo || !user || !completeToast) return;
+    if (!duo || !completeToast || !lastCompletedQuest.current) return;
     try {
-      await uncompleteQuest(duo.id, completeToast.questId, user.uid, completeToast.xp);
+      await uncompleteQuest(duo.id, completeToast.questId, lastCompletedQuest.current.assignedTo, completeToast.xp);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     } catch {
       Alert.alert('Error', 'Failed to undo quest');
@@ -124,10 +127,10 @@ export function HomeScreen({ navigation }: any) {
   };
 
   const handleUndoQuest = async (quest: Quest) => {
-    if (!duo || !user) return;
-    const xpToDeduct = quest.earnedXp || 0;
+    if (!duo) return;
+    const xpToDeduct = quest.earnedXp || PRIORITY_XP[quest.priority] || 0;
     try {
-      await uncompleteQuest(duo.id, quest.id, user.uid, xpToDeduct);
+      await uncompleteQuest(duo.id, quest.id, quest.assignedTo, xpToDeduct);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     } catch {
       Alert.alert('Error', 'Failed to undo quest');
@@ -257,36 +260,41 @@ export function HomeScreen({ navigation }: any) {
         />
 
         {/* History Toggle */}
-        {completedQuests.length > 0 && (
-          <View style={{ marginTop: 8 }}>
-            <TouchableOpacity
-              onPress={() => setShowHistory(!showHistory)}
-              activeOpacity={0.7}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingVertical: 10,
-                gap: 6,
-              }}
-            >
-              <PixelText size="xs" color={colors.textMuted}>
-                {showHistory ? '▼' : '▶'} History ({completedQuests.length})
-              </PixelText>
-            </TouchableOpacity>
+        <View style={{ marginTop: 8 }}>
+          <TouchableOpacity
+            onPress={() => setShowHistory(!showHistory)}
+            activeOpacity={0.7}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingVertical: 10,
+              gap: 6,
+            }}
+          >
+            <PixelText size="xs" color={colors.textMuted}>
+              {showHistory ? '▼' : '▶'} History ({completedQuests.length})
+            </PixelText>
+          </TouchableOpacity>
 
-            {showHistory && (
-              <QuestList
-                quests={completedQuests}
-                currentUserId={user?.uid ?? ''}
-                onComplete={handleComplete}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onUndo={handleUndoQuest}
-              />
-            )}
-          </View>
-        )}
+          {showHistory && completedQuests.length > 0 && (
+            <QuestList
+              quests={completedQuests}
+              currentUserId={user?.uid ?? ''}
+              onComplete={handleComplete}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onUndo={handleUndoQuest}
+            />
+          )}
+          {showHistory && completedQuests.length === 0 && (
+            <View style={{ alignItems: 'center', paddingVertical: 16 }}>
+              <PixelText size="xs" color={colors.textMuted}>
+                No completed quests yet
+              </PixelText>
+            </View>
+          )}
+        </View>
       </ScrollView>
 
       {/* FAB */}

@@ -18,7 +18,7 @@ interface QuestItemProps {
   isOwner: boolean;
 }
 
-export function QuestItem({ quest, onComplete, onPress, onDelete, onUndo, isOwner }: QuestItemProps) {
+export function QuestItem({ quest, onComplete, onPress, onDelete, onUndo }: QuestItemProps) {
   const { colors } = useThemeContext();
   const isCompleted = quest.status === 'completed';
   const isPast = isDueDatePast(quest.dueDate);
@@ -31,13 +31,12 @@ export function QuestItem({ quest, onComplete, onPress, onDelete, onUndo, isOwne
   };
 
   const handleComplete = () => {
-    if (isCompleted || !isOwner) return;
+    if (isCompleted) return;
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     onComplete();
   };
 
   const renderLeftActions = (_progress: Animated.AnimatedInterpolation<number>, dragX: Animated.AnimatedInterpolation<number>) => {
-    if (!isOwner) return null;
     const scale = dragX.interpolate({
       inputRange: [0, 80],
       outputRange: [0.5, 1],
@@ -92,7 +91,6 @@ export function QuestItem({ quest, onComplete, onPress, onDelete, onUndo, isOwne
   };
 
   const renderRightActions = (_progress: Animated.AnimatedInterpolation<number>, dragX: Animated.AnimatedInterpolation<number>) => {
-    if (!isOwner) return null;
     const scale = dragX.interpolate({
       inputRange: [-140, 0],
       outputRange: [1, 0.5],
@@ -175,7 +173,7 @@ export function QuestItem({ quest, onComplete, onPress, onDelete, onUndo, isOwne
         {/* Checkbox */}
         <TouchableOpacity
           onPress={handleComplete}
-          disabled={isCompleted || !isOwner}
+          disabled={isCompleted}
           style={{
             width: 26,
             height: 26,
@@ -242,10 +240,6 @@ export function QuestItem({ quest, onComplete, onPress, onDelete, onUndo, isOwne
       </View>
     </View>
   );
-
-  if (!isOwner) {
-    return <TouchableOpacity onPress={onPress} activeOpacity={0.8}>{content}</TouchableOpacity>;
-  }
 
   return (
     <Swipeable

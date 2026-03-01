@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback, ReactNode } from 'react';
-import { onSnapshot, doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { onSnapshot, doc, updateDoc, arrayUnion, DocumentReference } from 'firebase/firestore';
 import { getFirebaseDb } from '../lib/firebase';
 import { getUserDocument, updateUserDocument } from '../lib/firestore';
 import { useAuthContext } from './AuthContext';
@@ -69,7 +69,17 @@ export function DuoProvider({ children }: { children: ReactNode }) {
     const db = getFirebaseDb();
     const unsub = onSnapshot(doc(db, 'users', user.uid), (snap) => {
       if (snap.exists()) {
-        setUserProfile(snap.data() as UserProfile);
+        const data = snap.data() as UserProfile;
+        // Clamp XP to minimum 0
+        if ((data.xp ?? 0) < 0) {
+          updateDoc(snap.ref, { xp: 0 }).catch(() => {});
+          data.xp = 0;
+        }
+        if ((data.questsCompleted ?? 0) < 0) {
+          updateDoc(snap.ref, { questsCompleted: 0 }).catch(() => {});
+          data.questsCompleted = 0;
+        }
+        setUserProfile(data);
       } else {
         setUserProfile(null);
       }
@@ -89,7 +99,23 @@ export function DuoProvider({ children }: { children: ReactNode }) {
     const db = getFirebaseDb();
     const unsub = onSnapshot(doc(db, 'duos', userProfile.duoId), (snap) => {
       if (snap.exists()) {
-        setDuo({ id: snap.id, ...snap.data() } as Duo);
+        const data = { id: snap.id, ...snap.data() } as Duo;
+        // Clamp member XP to minimum 0
+        const fixes: Record<string, number> = {};
+        for (const uid of Object.keys(data.memberProfiles)) {
+          if ((data.memberProfiles[uid].xp ?? 0) < 0) {
+            data.memberProfiles[uid].xp = 0;
+            fixes[`memberProfiles.${uid}.xp`] = 0;
+          }
+          if ((data.memberProfiles[uid].questsCompleted ?? 0) < 0) {
+            data.memberProfiles[uid].questsCompleted = 0;
+            fixes[`memberProfiles.${uid}.questsCompleted`] = 0;
+          }
+        }
+        if (Object.keys(fixes).length > 0) {
+          updateDoc(snap.ref, fixes).catch(() => {});
+        }
+        setDuo(data);
       } else {
         setDuo(null);
       }

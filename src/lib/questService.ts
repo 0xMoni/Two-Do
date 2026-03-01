@@ -62,13 +62,14 @@ export async function completeQuest(
   duoId: string,
   questId: string,
   quest: Quest,
-  userId: string
+  _userId: string
 ): Promise<{ earnedXp: number }> {
   const db = getFirebaseDb();
   const batch = writeBatch(db);
 
   const isLate = isDueDatePast(quest.dueDate);
   const earnedXp = calculateEarnedXp(quest.priority, isLate);
+  const owner = quest.assignedTo;
 
   // Update quest
   batch.update(doc(db, 'duos', duoId, 'quests', questId), {
@@ -77,16 +78,15 @@ export async function completeQuest(
     earnedXp,
   });
 
-  // Update user XP + questsCompleted
-  batch.update(doc(db, 'users', userId), {
+  // XP goes to the quest owner (assignedTo), not the person tapping
+  batch.update(doc(db, 'users', owner), {
     xp: increment(earnedXp),
     questsCompleted: increment(1),
   });
 
-  // Update duo member profile
   batch.update(doc(db, 'duos', duoId), {
-    [`memberProfiles.${userId}.xp`]: increment(earnedXp),
-    [`memberProfiles.${userId}.questsCompleted`]: increment(1),
+    [`memberProfiles.${owner}.xp`]: increment(earnedXp),
+    [`memberProfiles.${owner}.questsCompleted`]: increment(1),
   });
 
   await batch.commit();
@@ -111,7 +111,7 @@ export async function completeQuestWithStreak(
 export async function uncompleteQuest(
   duoId: string,
   questId: string,
-  userId: string,
+  questAssignedTo: string,
   earnedXp: number
 ): Promise<void> {
   const db = getFirebaseDb();
@@ -124,16 +124,15 @@ export async function uncompleteQuest(
     earnedXp: 0,
   });
 
-  // Revert user XP + questsCompleted
-  batch.update(doc(db, 'users', userId), {
+  // Deduct XP from the quest owner (assignedTo), not the person tapping undo
+  batch.update(doc(db, 'users', questAssignedTo), {
     xp: increment(-earnedXp),
     questsCompleted: increment(-1),
   });
 
-  // Revert duo member profile
   batch.update(doc(db, 'duos', duoId), {
-    [`memberProfiles.${userId}.xp`]: increment(-earnedXp),
-    [`memberProfiles.${userId}.questsCompleted`]: increment(-1),
+    [`memberProfiles.${questAssignedTo}.xp`]: increment(-earnedXp),
+    [`memberProfiles.${questAssignedTo}.questsCompleted`]: increment(-1),
   });
 
   await batch.commit();
