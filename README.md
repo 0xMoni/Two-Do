@@ -104,11 +104,6 @@ Two-Do/
 5. **Level up** together and unlock achievements
 6. **Stay accountable** with streaks, due dates, and real-time sync
 
-## Contributors
-
-- **[0xMoni](https://github.com/0xMoni)** — Creator & Developer
-- **Claude (Anthropic)** — AI Pair Programmer
-
 ## License
 
 This project is for personal use. All rights reserved.
