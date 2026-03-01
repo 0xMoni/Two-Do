@@ -1,9 +1,14 @@
 import React from 'react';
-import { View, Dimensions } from 'react-native';
+import { View, Text, Dimensions } from 'react-native';
 import { PixelText } from '../common/PixelText';
-import { RPG_COLORS } from '../../lib/constants';
 
 const { width } = Dimensions.get('window');
+
+const LIGHT = {
+  gold: '#d97706',
+  accent: '#7c3aed',
+  textSecondary: '#5b4a7a',
+};
 
 interface OnboardingPageProps {
   emoji: string;
@@ -23,16 +28,16 @@ export function OnboardingPage({ emoji, title, subtitle, description }: Onboardi
         paddingHorizontal: 32,
       }}
     >
-      <PixelText size="xl" style={{ fontSize: 48, marginBottom: 24 }}>
+      <Text style={{ fontSize: 56, marginBottom: 24, textAlign: 'center' }}>
         {emoji}
-      </PixelText>
-      <PixelText size="lg" color={RPG_COLORS.gold} style={{ textAlign: 'center', marginBottom: 12 }}>
+      </Text>
+      <PixelText size="lg" color={LIGHT.gold} style={{ textAlign: 'center', marginBottom: 12 }}>
         {title}
       </PixelText>
-      <PixelText size="sm" color={RPG_COLORS.accent} style={{ textAlign: 'center', marginBottom: 16 }}>
+      <PixelText size="sm" color={LIGHT.accent} style={{ textAlign: 'center', marginBottom: 16 }}>
         {subtitle}
       </PixelText>
-      <PixelText size="xs" color={RPG_COLORS.textSecondary} style={{ textAlign: 'center', lineHeight: 18 }}>
+      <PixelText size="xs" color={LIGHT.textSecondary} style={{ textAlign: 'center', lineHeight: 18 }}>
         {description}
       </PixelText>
     </View>

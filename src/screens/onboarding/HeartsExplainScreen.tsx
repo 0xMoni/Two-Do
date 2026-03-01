@@ -2,7 +2,6 @@ import React from 'react';
 import { View, DeviceEventEmitter } from 'react-native';
 import { OnboardingPage } from '../../components/onboarding/OnboardingPage';
 import { RPGButton } from '../../components/common/RPGButton';
-import { RPG_COLORS } from '../../lib/constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export function HeartsExplainScreen({ navigation }: any) {
@@ -12,7 +11,7 @@ export function HeartsExplainScreen({ navigation }: any) {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: RPG_COLORS.background }}>
+    <View style={{ flex: 1, backgroundColor: '#f5f0ff' }}>
       <OnboardingPage
         emoji="❤️🍫✉️"
         title="Affection"
