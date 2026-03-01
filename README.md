@@ -103,3 +103,7 @@ Two-Do/
 5. **Level up** together and unlock achievements
 6. **Stay accountable** with streaks, due dates, and real-time sync
 
+## License
+
+MIT License. See [LICENSE](LICENSE) for details.
+
