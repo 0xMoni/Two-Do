@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, ScrollView, Alert } from 'react-native';
+import { View, TextInput, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { PixelText } from '../components/common/PixelText';
 import { RPGCard } from '../components/common/RPGCard';
 import { RPGButton } from '../components/common/RPGButton';
@@ -131,28 +131,35 @@ export function PairingScreen() {
         <PixelText size="xs" color={colors.textSecondary} style={{ marginBottom: 12 }}>
           Duo Type
         </PixelText>
-        <View style={{ flexDirection: 'row', gap: 12 }}>
-          <RPGButton
-            title="Couple 💕"
-            onPress={() => setRelationshipType('couple')}
-            variant={relationshipType === 'couple' ? 'gold' : 'secondary'}
-            size="sm"
-            style={{ flex: 1 }}
-          />
-          <RPGButton
-            title="Friends 🤝"
-            onPress={() => setRelationshipType('friends')}
-            variant={relationshipType === 'friends' ? 'gold' : 'secondary'}
-            size="sm"
-            style={{ flex: 1 }}
-          />
-          <RPGButton
-            title="LD 🌍"
-            onPress={() => setRelationshipType('ld')}
-            variant={relationshipType === 'ld' ? 'gold' : 'secondary'}
-            size="sm"
-            style={{ flex: 1 }}
-          />
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          {([
+            { value: 'couple' as const, emoji: '💕', name: 'Couple' },
+            { value: 'friends' as const, emoji: '🤝', name: 'Friends' },
+            { value: 'ld' as const, emoji: '🌍', name: 'LD' },
+          ]).map((opt) => {
+            const isActive = relationshipType === opt.value;
+            return (
+              <TouchableOpacity
+                key={opt.value}
+                onPress={() => setRelationshipType(opt.value)}
+                activeOpacity={0.7}
+                style={{
+                  flex: 1,
+                  backgroundColor: isActive ? colors.gold + '20' : colors.inputBg,
+                  borderWidth: 2,
+                  borderColor: isActive ? colors.gold : colors.cardBorder,
+                  borderRadius: 4,
+                  paddingVertical: 10,
+                  alignItems: 'center',
+                }}
+              >
+                <PixelText size="lg">{opt.emoji}</PixelText>
+                <PixelText size="xs" color={isActive ? colors.gold : colors.textSecondary} style={{ marginTop: 4 }}>
+                  {opt.name}
+                </PixelText>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </RPGCard>
 
