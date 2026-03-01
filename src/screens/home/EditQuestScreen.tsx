@@ -15,7 +15,7 @@ import { useThemeContext } from '../../contexts/ThemeContext';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { useDuoContext } from '../../contexts/DuoContext';
 import { useQuests } from '../../lib/useQuests';
-import { updateQuest } from '../../lib/questService';
+import { updateQuest, uncompleteQuest, softDeleteQuest } from '../../lib/questService';
 import { DEFAULT_CATEGORIES, PRIORITY_XP } from '../../lib/constants';
 import { QuestPriority } from '../../types';
 
@@ -176,6 +176,80 @@ export function EditQuestScreen({ route, navigation }: any) {
             </TouchableOpacity>
           ))}
         </ScrollView>
+
+        {/* Undo & Delete */}
+        {quest.status === 'completed' && (
+          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
+            <RPGButton
+              title="Undo"
+              onPress={() => {
+                Alert.alert('Undo Quest', 'Mark this quest as active again? Earned XP will be deducted.', [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Undo',
+                    onPress: async () => {
+                      if (!duo || !user) return;
+                      try {
+                        await uncompleteQuest(duo.id, questId, user.uid, quest.earnedXp || 0);
+                        navigation.goBack();
+                      } catch {
+                        Alert.alert('Error', 'Failed to undo quest');
+                      }
+                    },
+                  },
+                ]);
+              }}
+              variant="secondary"
+              size="sm"
+              style={{ flex: 1 }}
+            />
+            <RPGButton
+              title="Delete"
+              onPress={() => {
+                Alert.alert('Delete Quest', `Remove "${quest.title}" permanently?`, [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                      if (!duo) return;
+                      await softDeleteQuest(duo.id, questId);
+                      navigation.goBack();
+                    },
+                  },
+                ]);
+              }}
+              variant="danger"
+              size="sm"
+              style={{ flex: 1 }}
+            />
+          </View>
+        )}
+
+        {quest.status === 'active' && (
+          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
+            <RPGButton
+              title="Delete"
+              onPress={() => {
+                Alert.alert('Delete Quest', `Remove "${quest.title}"?`, [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                      if (!duo) return;
+                      await softDeleteQuest(duo.id, questId);
+                      navigation.goBack();
+                    },
+                  },
+                ]);
+              }}
+              variant="danger"
+              size="sm"
+              style={{ flex: 1 }}
+            />
+          </View>
+        )}
 
         <RPGButton
           title="Save Changes"
