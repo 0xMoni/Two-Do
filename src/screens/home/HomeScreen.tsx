@@ -13,7 +13,7 @@ import { useThemeContext } from '../../contexts/ThemeContext';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { useDuoContext } from '../../contexts/DuoContext';
 import { useQuests } from '../../lib/useQuests';
-import { completeQuestWithStreak, softDeleteQuest } from '../../lib/questService';
+import { completeQuestWithStreak, softDeleteQuest, uncompleteQuest } from '../../lib/questService';
 import { DEFAULT_CATEGORIES } from '../../lib/constants';
 import { Quest, Category } from '../../types';
 import { checkExpiredQuests } from '../../lib/expiredQuestChecker';
@@ -34,7 +34,7 @@ export function HomeScreen({ navigation }: any) {
   const [newCatIcon, setNewCatIcon] = useState('📌');
   const expiredChecked = useRef(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [completeToast, setCompleteToast] = useState<{ xp: number; streak: number } | null>(null);
+  const [completeToast, setCompleteToast] = useState<{ xp: number; streak: number; questId: string } | null>(null);
   const [showHistory, setShowHistory] = useState(false);
 
   const handleAddCategory = async () => {
@@ -107,9 +107,19 @@ export function HomeScreen({ navigation }: any) {
         duo.lastStreakDate ?? null,
       );
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setCompleteToast({ xp: earnedXp, streak: newStreak });
+      setCompleteToast({ xp: earnedXp, streak: newStreak, questId: quest.id });
     } catch {
       Alert.alert('Error', 'Failed to complete quest');
+    }
+  };
+
+  const handleUndo = async () => {
+    if (!duo || !user || !completeToast) return;
+    try {
+      await uncompleteQuest(duo.id, completeToast.questId, user.uid, completeToast.xp);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    } catch {
+      Alert.alert('Error', 'Failed to undo quest');
     }
   };
 
@@ -368,6 +378,7 @@ export function HomeScreen({ navigation }: any) {
         xp={completeToast?.xp ?? 0}
         streak={completeToast?.streak ?? 0}
         onDone={() => setCompleteToast(null)}
+        onUndo={handleUndo}
       />
 
       {/* Level Up Modal */}

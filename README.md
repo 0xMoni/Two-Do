@@ -11,12 +11,14 @@ A gamified RPG-themed to-do app for duos — couples, friends, or long-distance 
 - **Achievements** — Unlock 15 achievements based on milestones (quests completed, streaks, XP earned, and more)
 - **Categories** — Organize quests by category (Daily, Errands, Self-Care, Fitness, etc.) with custom category support
 - **Affection Counter** — Send hearts, letters, or chocolates to your partner with a real-time tap counter
+- **Undo Quest Completion** — Accidentally completed? Tap Undo on the toast to revert instantly
 - **Confetti Celebrations** — Animated confetti and toast on quest completion
 - **Quest History** — View completed quests separately with earned XP
 - **Swipe Actions** — Swipe right to complete, swipe left to edit or delete quests
 - **Pull to Refresh** — Pull down to refresh and check for expired quests
 - **Push Notifications** — Due date reminders and local notifications
 - **Duo Types** — Choose between Couple, Friends, or Long-Distance modes with themed interactions
+- **Account Management** — Delete account option in settings with confirmation
 - **RPG Theme** — Pixel font, XP bars, character avatars, and game-inspired UI throughout
 
 ## Tech Stack

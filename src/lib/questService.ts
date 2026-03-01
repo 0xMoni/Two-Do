@@ -108,6 +108,37 @@ export async function completeQuestWithStreak(
   return { earnedXp: result.earnedXp, newStreak };
 }
 
+export async function uncompleteQuest(
+  duoId: string,
+  questId: string,
+  userId: string,
+  earnedXp: number
+): Promise<void> {
+  const db = getFirebaseDb();
+  const batch = writeBatch(db);
+
+  // Revert quest status
+  batch.update(doc(db, 'duos', duoId, 'quests', questId), {
+    status: 'active',
+    completedAt: null,
+    earnedXp: 0,
+  });
+
+  // Revert user XP + questsCompleted
+  batch.update(doc(db, 'users', userId), {
+    xp: increment(-earnedXp),
+    questsCompleted: increment(-1),
+  });
+
+  // Revert duo member profile
+  batch.update(doc(db, 'duos', duoId), {
+    [`memberProfiles.${userId}.xp`]: increment(-earnedXp),
+    [`memberProfiles.${userId}.questsCompleted`]: increment(-1),
+  });
+
+  await batch.commit();
+}
+
 export async function expireQuest(
   duoId: string,
   questId: string,

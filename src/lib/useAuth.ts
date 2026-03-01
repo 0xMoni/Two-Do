@@ -4,6 +4,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
+  deleteUser,
   User,
 } from 'firebase/auth';
 import { getFirebaseAuth } from './firebase';
@@ -37,5 +38,12 @@ export function useAuth() {
     await signOut(getFirebaseAuth());
   }, []);
 
-  return { user, loading, login, signUp, logout };
+  const deleteAccount = useCallback(async () => {
+    const currentUser = getFirebaseAuth().currentUser;
+    if (currentUser) {
+      await deleteUser(currentUser);
+    }
+  }, []);
+
+  return { user, loading, login, signUp, logout, deleteAccount };
 }

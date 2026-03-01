@@ -8,6 +8,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<User>;
   signUp: (email: string, password: string, displayName: string) => Promise<User>;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextValue>({
   login: async () => { throw new Error('Not initialized'); },
   signUp: async () => { throw new Error('Not initialized'); },
   logout: async () => {},
+  deleteAccount: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {

@@ -19,7 +19,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 export function ProfileScreen() {
   const { colors } = useThemeContext();
-  const { user, logout } = useAuthContext();
+  const { user, logout, deleteAccount } = useAuthContext();
   const { userProfile, duo } = useDuoContext();
 
   const [editingNickname, setEditingNickname] = useState(false);
@@ -323,56 +323,49 @@ export function ProfileScreen() {
           Achievements ({unlockedAchievements.length}/{ACHIEVEMENTS.length})
         </PixelText>
 
-        {unlockedAchievements.length > 0 && (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
-            {unlockedAchievements.map((a) => (
-              <View
-                key={a.id}
-                style={{
-                  backgroundColor: colors.gold + '20',
-                  borderWidth: 1,
-                  borderColor: colors.gold,
-                  borderRadius: 4,
-                  paddingHorizontal: 8,
-                  paddingVertical: 6,
-                  alignItems: 'center',
-                  minWidth: 70,
-                }}
-              >
-                <PixelText size="sm">{a.icon}</PixelText>
-                <PixelText size="xs" color={colors.gold} style={{ marginTop: 2, textAlign: 'center' }}>
-                  {a.name}
-                </PixelText>
-              </View>
-            ))}
-          </View>
-        )}
+        {/* Progress bar */}
+        <View style={{ height: 6, backgroundColor: colors.inputBg, borderRadius: 3, marginBottom: 16, overflow: 'hidden' }}>
+          <View
+            style={{
+              height: '100%',
+              width: `${(unlockedAchievements.length / ACHIEVEMENTS.length) * 100}%`,
+              backgroundColor: colors.gold,
+              borderRadius: 3,
+            }}
+          />
+        </View>
 
-        {lockedAchievements.length > 0 && (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {lockedAchievements.map((a) => (
-              <View
-                key={a.id}
-                style={{
-                  backgroundColor: colors.inputBg,
-                  borderWidth: 1,
-                  borderColor: colors.cardBorder,
-                  borderRadius: 4,
-                  paddingHorizontal: 8,
-                  paddingVertical: 6,
-                  alignItems: 'center',
-                  minWidth: 70,
-                  opacity: 0.5,
-                }}
-              >
-                <PixelText size="sm">🔒</PixelText>
-                <PixelText size="xs" color={colors.textMuted} style={{ marginTop: 2, textAlign: 'center' }}>
+        {[...unlockedAchievements, ...lockedAchievements].map((a) => {
+          const unlocked = unlockedIds.includes(a.id);
+          return (
+            <View
+              key={a.id}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingVertical: 10,
+                borderBottomWidth: 1,
+                borderBottomColor: colors.cardBorder + '40',
+                opacity: unlocked ? 1 : 0.45,
+              }}
+            >
+              <View style={{ width: 36, alignItems: 'center' }}>
+                <PixelText size="sm">{unlocked ? a.icon : '🔒'}</PixelText>
+              </View>
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <PixelText size="xs" color={unlocked ? colors.text : colors.textMuted}>
                   {a.name}
                 </PixelText>
+                <PixelText size="xs" color={colors.textMuted} style={{ marginTop: 2, fontSize: 7 }}>
+                  {a.description}
+                </PixelText>
               </View>
-            ))}
-          </View>
-        )}
+              {unlocked && (
+                <PixelText size="xs" color={colors.success}>✓</PixelText>
+              )}
+            </View>
+          );
+        })}
       </RPGCard>
 
       {/* Settings */}
@@ -386,6 +379,36 @@ export function ProfileScreen() {
           variant="danger"
           size="sm"
         />
+        <View style={{ marginTop: 16, borderTopWidth: 1, borderTopColor: colors.cardBorder, paddingTop: 16 }}>
+          <PixelText size="xs" color={colors.danger} style={{ marginBottom: 8 }}>
+            Danger Zone
+          </PixelText>
+          <RPGButton
+            title="Delete Account"
+            onPress={() => {
+              Alert.alert(
+                'Delete Account',
+                'This will permanently delete your account and all your data. This cannot be undone.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                      try {
+                        await deleteAccount();
+                      } catch {
+                        Alert.alert('Error', 'Failed to delete account. You may need to log in again first.');
+                      }
+                    },
+                  },
+                ]
+              );
+            }}
+            variant="danger"
+            size="sm"
+          />
+        </View>
       </RPGCard>
 
       {/* Footer */}

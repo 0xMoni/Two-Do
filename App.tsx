@@ -8,12 +8,14 @@ import { AuthProvider } from './src/contexts/AuthContext';
 import { DuoProvider } from './src/contexts/DuoContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { SplashScreen } from './src/screens/SplashScreen';
-import { registerForPushNotifications } from './src/lib/notificationService';
+import { registerForPushNotifications, requestNotificationPermissions } from './src/lib/notificationService';
 
 function AppInner() {
   const { colors, dark } = useThemeContext();
 
   useEffect(() => {
+    // Request notification permissions on app start (shows popup on standalone builds)
+    requestNotificationPermissions().catch(() => {});
     registerForPushNotifications().catch(() => {});
   }, []);
 

@@ -27,6 +27,10 @@ if (!isExpoGo) {
   });
 }
 
+export async function requestNotificationPermissions(): Promise<boolean> {
+  return ensurePermissionsAndChannel();
+}
+
 async function ensurePermissionsAndChannel(): Promise<boolean> {
   if (isExpoGo) return false;
 

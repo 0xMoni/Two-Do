@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useMemo } from 'react';
-import { View, Animated, Dimensions } from 'react-native';
+import { View, Animated, Dimensions, TouchableOpacity } from 'react-native';
 import { PixelText } from './PixelText';
 import { useThemeContext } from '../../contexts/ThemeContext';
 
@@ -12,6 +12,7 @@ interface QuestCompleteToastProps {
   xp: number;
   streak: number;
   onDone: () => void;
+  onUndo?: () => void;
 }
 
 interface PieceConfig {
@@ -81,7 +82,7 @@ function ConfettiPiece({ config }: { config: PieceConfig }) {
   );
 }
 
-export function QuestCompleteToast({ visible, xp, streak, onDone }: QuestCompleteToastProps) {
+export function QuestCompleteToast({ visible, xp, streak, onDone, onUndo }: QuestCompleteToastProps) {
   const { colors } = useThemeContext();
   const scale = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(0)).current;
@@ -116,10 +117,12 @@ export function QuestCompleteToast({ visible, xp, streak, onDone }: QuestComplet
   if (!visible) return null;
 
   return (
-    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, pointerEvents: 'none' }}>
-      {pieces.map((config, i) => (
-        <ConfettiPiece key={i} config={config} />
-      ))}
+    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, pointerEvents: 'box-none' }}>
+      <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+        {pieces.map((config, i) => (
+          <ConfettiPiece key={i} config={config} />
+        ))}
+      </View>
 
       <Animated.View
         style={{
@@ -155,6 +158,24 @@ export function QuestCompleteToast({ visible, xp, streak, onDone }: QuestComplet
           <PixelText size="xs" color="#ff6b25" style={{ marginTop: 4 }}>
             {streak}-day streak!
           </PixelText>
+        )}
+        {onUndo && (
+          <TouchableOpacity
+            onPress={() => { onUndo(); onDone(); }}
+            activeOpacity={0.7}
+            style={{
+              marginTop: 10,
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 4,
+              borderWidth: 2,
+              borderColor: colors.danger,
+            }}
+          >
+            <PixelText size="xs" color={colors.danger}>
+              Undo
+            </PixelText>
+          </TouchableOpacity>
         )}
       </Animated.View>
     </View>
