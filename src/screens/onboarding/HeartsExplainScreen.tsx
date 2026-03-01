@@ -14,10 +14,10 @@ export function HeartsExplainScreen({ navigation }: any) {
   return (
     <View style={{ flex: 1, backgroundColor: RPG_COLORS.background }}>
       <OnboardingPage
-        emoji="❤️"
-        title="Hearts"
-        subtitle="Show Some Love"
-        description="Tap the heart button to send love to your partner. The counter tracks your affection in real-time. It's the little things that matter!"
+        emoji="❤️🍫✉️"
+        title="Affection"
+        subtitle="Send Some Love"
+        description="Tap to send hearts, chocolates, or letters to your duo partner. The counter tracks it all in real-time. It's the little things that count!"
       />
       <View style={{ paddingHorizontal: 32, paddingBottom: 48 }}>
         <RPGButton title="Let's Go!" onPress={handleDone} variant="gold" size="lg" />

@@ -1,30 +1,43 @@
 import React from 'react';
-import { View, ActivityIndicator, Image } from 'react-native';
+import { View, ActivityIndicator, Image, SafeAreaView } from 'react-native';
 import { PixelText } from '../components/common/PixelText';
-import { RPG_COLORS } from '../lib/constants';
+
+// Light theme colors used directly since SplashScreen renders before ThemeProvider
+const SPLASH_COLORS = {
+  background: '#f5f0ff',
+  gold: '#d97706',
+  textSecondary: '#5b4a7a',
+};
 
 export function SplashScreen() {
   return (
-    <View
+    <SafeAreaView
       style={{
         flex: 1,
-        backgroundColor: RPG_COLORS.background,
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: SPLASH_COLORS.background,
       }}
     >
-      <Image
-        source={require('../../assets/logo-header.png')}
-        style={{ width: 80, height: 80, marginBottom: 16 }}
-        resizeMode="contain"
-      />
-      <PixelText size="xl" color={RPG_COLORS.gold}>
-        Two-Do
-      </PixelText>
-      <PixelText size="xs" color={RPG_COLORS.textSecondary} style={{ marginTop: 12 }}>
-        Loading quest data...
-      </PixelText>
-      <ActivityIndicator color={RPG_COLORS.gold} style={{ marginTop: 24 }} size="large" />
-    </View>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingHorizontal: 24,
+        }}
+      >
+        <Image
+          source={require('../../assets/logo-header.png')}
+          style={{ width: 80, height: 80, marginBottom: 16 }}
+          resizeMode="contain"
+        />
+        <PixelText size="xl" color={SPLASH_COLORS.gold}>
+          Two-Do
+        </PixelText>
+        <PixelText size="xs" color={SPLASH_COLORS.textSecondary} style={{ marginTop: 12 }}>
+          Loading quest data...
+        </PixelText>
+        <ActivityIndicator color={SPLASH_COLORS.gold} style={{ marginTop: 24 }} size="large" />
+      </View>
+    </SafeAreaView>
   );
 }

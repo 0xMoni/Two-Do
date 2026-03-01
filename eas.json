@@ -7,9 +7,12 @@
     "preview": {
       "android": {
         "buildType": "apk",
-        "credentialsSource": "remote"
+        "credentialsSource": "local"
       },
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "ANDROID_HOME": "/Users/moni/Library/Android/sdk"
+      }
     },
     "production": {
       "android": {
