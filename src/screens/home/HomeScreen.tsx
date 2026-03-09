@@ -13,7 +13,8 @@ import { useThemeContext } from '../../contexts/ThemeContext';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { useDuoContext } from '../../contexts/DuoContext';
 import { useQuests } from '../../lib/useQuests';
-import { completeQuestWithStreak, softDeleteQuest, uncompleteQuest } from '../../lib/questService';
+import { completeQuestWithStreak, softDeleteQuest, uncompleteQuest, handleRecurringQuestCompletion } from '../../lib/questService';
+import { scheduleRemindersForQuests } from '../../lib/notificationService';
 import { DEFAULT_CATEGORIES, PRIORITY_XP } from '../../lib/constants';
 import { Quest, Category } from '../../types';
 import { checkExpiredQuests } from '../../lib/expiredQuestChecker';
@@ -25,7 +26,7 @@ export function HomeScreen({ navigation }: any) {
   const { colors } = useThemeContext();
   const { user } = useAuthContext();
   const { duo, levelUpLevel, dismissLevelUp, newAchievement, dismissAchievement } = useDuoContext();
-  const { quests, loading } = useQuests(duo?.id ?? null);
+  const { quests } = useQuests(duo?.id ?? null);
 
   const [questView, setQuestView] = useState<'mine' | 'partner'>('mine');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -65,6 +66,24 @@ export function HomeScreen({ navigation }: any) {
       checkExpiredQuests(duo.id).catch(() => {});
     }
   }, [duo?.id]);
+
+  // Schedule local reminders for current user's quests with due dates
+  useEffect(() => {
+    if (!user?.uid || quests.length === 0) return;
+    const now = new Date();
+    const upcoming = quests
+      .filter(
+        (q) =>
+          q.status === 'active' &&
+          q.assignedTo === user.uid &&
+          q.dueDate &&
+          q.dueDate.toDate() > now,
+      )
+      .map((q) => ({ id: q.id, title: q.title, dueDate: q.dueDate!.toDate() }));
+    if (upcoming.length > 0) {
+      scheduleRemindersForQuests(upcoming).catch(() => {});
+    }
+  }, [quests, user?.uid]);
 
   const partnerId = duo?.memberIds.find((id) => id !== user?.uid) ?? '';
   const myProfile = duo?.memberProfiles[user?.uid ?? ''];
@@ -109,6 +128,10 @@ export function HomeScreen({ navigation }: any) {
       );
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setCompleteToast({ xp: earnedXp, streak: newStreak, questId: quest.id });
+      // Auto-create next occurrence for recurring quests
+      if (quest.recurring) {
+        handleRecurringQuestCompletion(duo.id, quest).catch(() => {});
+      }
     } catch {
       Alert.alert('Error', 'Failed to complete quest');
     }

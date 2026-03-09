@@ -168,3 +168,71 @@ export async function softDeleteQuest(duoId: string, questId: string): Promise<v
     status: 'deleted',
   });
 }
+
+function getNextOccurrenceDate(customDays: number[]): Date {
+  if (customDays.length === 0) return new Date();
+  const now = new Date();
+  const today = now.getDay(); // 0=Sun
+  const sorted = [...customDays].sort((a, b) => a - b);
+
+  // Find the next day strictly after today
+  for (const day of sorted) {
+    if (day > today) {
+      const diff = day - today;
+      const next = new Date(now);
+      next.setDate(next.getDate() + diff);
+      next.setHours(23, 59, 0, 0);
+      return next;
+    }
+  }
+
+  // Wrap around to next week
+  const diff = 7 - today + sorted[0];
+  const next = new Date(now);
+  next.setDate(next.getDate() + diff);
+  next.setHours(23, 59, 0, 0);
+  return next;
+}
+
+export async function handleRecurringQuestCompletion(
+  duoId: string,
+  quest: Quest,
+): Promise<void> {
+  if (!quest.recurring) return;
+
+  const days = quest.recurring.customDays ?? [];
+  if (quest.recurring.type === 'daily') {
+    // Daily: next occurrence is tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(23, 59, 0, 0);
+
+    await createQuest(duoId, {
+      title: quest.title,
+      description: quest.description,
+      categoryId: quest.categoryId,
+      assignedTo: quest.assignedTo,
+      createdBy: quest.createdBy,
+      dueDate: tomorrow,
+      priority: quest.priority,
+      recurring: quest.recurring,
+    });
+  } else {
+    // Weekly or custom
+    const nextDate = getNextOccurrenceDate(days);
+
+    await createQuest(duoId, {
+      title: quest.title,
+      description: quest.description,
+      categoryId: quest.categoryId,
+      assignedTo: quest.assignedTo,
+      createdBy: quest.createdBy,
+      dueDate: nextDate,
+      priority: quest.priority,
+      recurring: {
+        ...quest.recurring,
+        nextOccurrence: Timestamp.fromDate(nextDate),
+      },
+    });
+  }
+}

@@ -17,7 +17,10 @@ import { useDuoContext } from '../../contexts/DuoContext';
 import { useQuests } from '../../lib/useQuests';
 import { updateQuest, uncompleteQuest, softDeleteQuest } from '../../lib/questService';
 import { DEFAULT_CATEGORIES, PRIORITY_XP } from '../../lib/constants';
-import { QuestPriority } from '../../types';
+import { QuestPriority, QuestRecurring } from '../../types';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Timestamp } from 'firebase/firestore';
+import { scheduleOrUpdateDueReminder } from '../../lib/notificationService';
 
 export function EditQuestScreen({ route, navigation }: any) {
   const { questId } = route.params;
@@ -33,6 +36,10 @@ export function EditQuestScreen({ route, navigation }: any) {
   const [categoryId, setCategoryId] = useState('daily');
   const [priority, setPriority] = useState<QuestPriority>('medium');
   const [loading, setLoading] = useState(false);
+  const [dueDate, setDueDate] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [recurringEnabled, setRecurringEnabled] = useState(false);
+  const [recurringDays, setRecurringDays] = useState<number[]>([]);
 
   useEffect(() => {
     if (quest) {
@@ -40,12 +47,43 @@ export function EditQuestScreen({ route, navigation }: any) {
       setDescription(quest.description);
       setCategoryId(quest.categoryId);
       setPriority(quest.priority);
+      setDueDate(quest.dueDate?.toDate() ?? null);
+      if (quest.recurring) {
+        setRecurringEnabled(true);
+        setRecurringDays(quest.recurring.customDays ?? []);
+      }
     }
   }, [quest?.id]);
 
   const categories = useMemo(() => {
     return [...DEFAULT_CATEGORIES.filter((c) => c.id !== 'all'), ...(duo?.customCategories ?? [])];
   }, [duo?.customCategories]);
+
+  const buildRecurring = (): QuestRecurring | null => {
+    if (!recurringEnabled || recurringDays.length === 0) return null;
+    const isDaily = recurringDays.length === 7;
+    const sorted = [...recurringDays].sort((a, b) => a - b);
+    const now = new Date();
+    const today = now.getDay();
+    let nextDate: Date;
+
+    if (isDaily) {
+      nextDate = new Date(now);
+      nextDate.setDate(nextDate.getDate() + 1);
+    } else {
+      const future = sorted.find((d) => d > today);
+      const diff = future !== undefined ? future - today : 7 - today + sorted[0];
+      nextDate = new Date(now);
+      nextDate.setDate(nextDate.getDate() + diff);
+    }
+    nextDate.setHours(23, 59, 0, 0);
+
+    return {
+      type: isDaily ? 'daily' : 'custom',
+      customDays: sorted,
+      nextOccurrence: Timestamp.fromDate(nextDate),
+    };
+  };
 
   const handleUpdate = async () => {
     if (!title.trim() || !duo || !quest) return;
@@ -57,7 +95,12 @@ export function EditQuestScreen({ route, navigation }: any) {
         categoryId,
         priority,
         baseXp: PRIORITY_XP[priority],
+        dueDate: dueDate ? Timestamp.fromDate(dueDate) : null,
+        recurring: buildRecurring(),
       });
+      if (dueDate) {
+        scheduleOrUpdateDueReminder(title.trim(), dueDate, questId).catch(() => {});
+      }
       navigation.goBack();
     } catch {
       Alert.alert('Error', 'Failed to update quest');
@@ -155,7 +198,7 @@ export function EditQuestScreen({ route, navigation }: any) {
         <PixelText size="xs" color={colors.textSecondary} style={{ marginBottom: 8 }}>
           Category
         </PixelText>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 24 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
           {categories.map((cat) => (
             <TouchableOpacity
               key={cat.id}
@@ -176,6 +219,124 @@ export function EditQuestScreen({ route, navigation }: any) {
             </TouchableOpacity>
           ))}
         </ScrollView>
+
+        {/* Due Date */}
+        <PixelText size="xs" color={colors.textSecondary} style={{ marginBottom: 8 }}>
+          Due Date
+        </PixelText>
+        <TouchableOpacity
+          onPress={() => setShowDatePicker(true)}
+          style={{
+            backgroundColor: colors.inputBg,
+            borderWidth: 2,
+            borderColor: colors.inputBorder,
+            borderRadius: 4,
+            padding: 14,
+            marginBottom: 16,
+          }}
+        >
+          <PixelText size="xs" color={dueDate ? colors.text : colors.textMuted}>
+            {dueDate ? dueDate.toLocaleDateString() : 'No due date'}
+          </PixelText>
+        </TouchableOpacity>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={dueDate ?? new Date()}
+            mode="date"
+            minimumDate={new Date()}
+            onChange={(event, date) => {
+              setShowDatePicker(Platform.OS === 'ios');
+              if (date) setDueDate(date);
+            }}
+          />
+        )}
+
+        {dueDate && (
+          <RPGButton
+            title="Clear Due Date"
+            onPress={() => setDueDate(null)}
+            variant="secondary"
+            size="sm"
+            style={{ marginBottom: 16 }}
+          />
+        )}
+
+        {/* Repeat */}
+        <PixelText size="xs" color={colors.textSecondary} style={{ marginBottom: 8 }}>
+          Repeat
+        </PixelText>
+        <View style={{ flexDirection: 'row', gap: 8, marginBottom: recurringEnabled ? 12 : 16 }}>
+          <RPGButton
+            title="No Repeat"
+            onPress={() => { setRecurringEnabled(false); setRecurringDays([]); }}
+            variant={!recurringEnabled ? 'gold' : 'secondary'}
+            size="sm"
+            style={{ flex: 1 }}
+          />
+          <RPGButton
+            title="Repeat"
+            onPress={() => setRecurringEnabled(true)}
+            variant={recurringEnabled ? 'gold' : 'secondary'}
+            size="sm"
+            style={{ flex: 1 }}
+          />
+        </View>
+        {recurringEnabled && (
+          <View style={{ marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', gap: 6, marginBottom: 10 }}>
+              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((label, idx) => {
+                const selected = recurringDays.includes(idx);
+                return (
+                  <TouchableOpacity
+                    key={idx}
+                    onPress={() =>
+                      setRecurringDays((prev) =>
+                        selected ? prev.filter((d) => d !== idx) : [...prev, idx],
+                      )
+                    }
+                    style={{
+                      flex: 1,
+                      aspectRatio: 1,
+                      maxWidth: 42,
+                      backgroundColor: selected ? colors.accent + '30' : colors.card,
+                      borderWidth: 2,
+                      borderColor: selected ? colors.accent : colors.cardBorder,
+                      borderRadius: 4,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <PixelText size="xs" color={selected ? colors.accent : colors.textSecondary}>
+                      {label}
+                    </PixelText>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <RPGButton
+                title="Every Day"
+                onPress={() => setRecurringDays([0, 1, 2, 3, 4, 5, 6])}
+                variant={recurringDays.length === 7 ? 'gold' : 'secondary'}
+                size="sm"
+                style={{ flex: 1 }}
+              />
+              <RPGButton
+                title="Weekdays"
+                onPress={() => setRecurringDays([1, 2, 3, 4, 5])}
+                variant={
+                  recurringDays.length === 5 &&
+                  [1, 2, 3, 4, 5].every((d) => recurringDays.includes(d))
+                    ? 'gold'
+                    : 'secondary'
+                }
+                size="sm"
+                style={{ flex: 1 }}
+              />
+            </View>
+          </View>
+        )}
 
         {/* Undo & Delete */}
         {quest.status === 'completed' && (

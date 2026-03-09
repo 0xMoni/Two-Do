@@ -1,7 +1,9 @@
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const isExpoGo = Constants.appOwnership === 'expo';
+const NOTIF_MAP_KEY = '@quest_notification_ids';
 
 let Notifications: typeof import('expo-notifications') | null = null;
 
@@ -103,4 +105,45 @@ export async function sendLocalNotification(title: string, body: string): Promis
     content: { title, body },
     trigger: null,
   });
+}
+
+async function getNotifMap(): Promise<Record<string, string>> {
+  try {
+    const raw = await AsyncStorage.getItem(NOTIF_MAP_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+async function saveNotifMap(map: Record<string, string>): Promise<void> {
+  await AsyncStorage.setItem(NOTIF_MAP_KEY, JSON.stringify(map));
+}
+
+export async function scheduleOrUpdateDueReminder(
+  questTitle: string,
+  dueDate: Date,
+  questId: string,
+): Promise<void> {
+  const map = await getNotifMap();
+
+  // Cancel existing notification for this quest
+  if (map[questId]) {
+    await cancelNotification(map[questId]).catch(() => {});
+    delete map[questId];
+  }
+
+  const notifId = await scheduleDueReminder(questTitle, dueDate, questId);
+  if (notifId) {
+    map[questId] = notifId;
+  }
+  await saveNotifMap(map);
+}
+
+export async function scheduleRemindersForQuests(
+  quests: { id: string; title: string; dueDate: Date }[],
+): Promise<void> {
+  for (const q of quests) {
+    await scheduleOrUpdateDueReminder(q.title, q.dueDate, q.id).catch(() => {});
+  }
 }

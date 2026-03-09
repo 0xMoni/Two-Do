@@ -155,14 +155,16 @@ export function QuestItem({ quest, onComplete, onPress, onDelete, onUndo }: Ques
     );
   };
 
+  const isOverdue = !isCompleted && isPast;
+
   const content = (
     <View
       style={{
-        backgroundColor: colors.card,
+        backgroundColor: isOverdue ? colors.danger + '10' : colors.card,
         borderWidth: 2,
-        borderColor: isCompleted ? colors.success + '40' : colors.cardBorder,
+        borderColor: isOverdue ? colors.danger + '60' : isCompleted ? colors.success + '40' : colors.cardBorder,
         borderLeftWidth: 5,
-        borderLeftColor: isCompleted ? colors.success : priorityColors[quest.priority],
+        borderLeftColor: isOverdue ? colors.danger : isCompleted ? colors.success : priorityColors[quest.priority],
         borderRadius: 4,
         padding: 14,
         marginBottom: 10,
@@ -196,7 +198,7 @@ export function QuestItem({ quest, onComplete, onPress, onDelete, onUndo }: Ques
         <View style={{ flex: 1 }}>
           <PixelText
             size="xs"
-            color={isCompleted ? colors.textMuted : colors.text}
+            color={isCompleted ? colors.textMuted : isOverdue ? colors.danger : colors.text}
             style={{ textDecorationLine: isCompleted ? 'line-through' : 'none' }}
           >
             {quest.title}
@@ -231,6 +233,13 @@ export function QuestItem({ quest, onComplete, onPress, onDelete, onUndo }: Ques
                     label={formatDueDate(quest.dueDate)}
                     color={isPast ? colors.danger : isSoon ? colors.gold : colors.textSecondary}
                     bgColor={(isPast ? colors.danger : isSoon ? colors.gold : colors.textSecondary) + '20'}
+                  />
+                )}
+                {quest.recurring && (
+                  <Badge
+                    label="🔁 Repeat"
+                    color={colors.accent}
+                    bgColor={colors.accent + '20'}
                   />
                 )}
               </>

@@ -10,14 +10,14 @@ import {
 } from 'react-native';
 import { PixelText } from '../../components/common/PixelText';
 import { RPGButton } from '../../components/common/RPGButton';
-import { RPGCard } from '../../components/common/RPGCard';
 import { useThemeContext } from '../../contexts/ThemeContext';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { useDuoContext } from '../../contexts/DuoContext';
 import { createQuest } from '../../lib/questService';
 import { DEFAULT_CATEGORIES, PRIORITY_XP } from '../../lib/constants';
-import { QuestPriority } from '../../types';
+import { QuestPriority, QuestRecurring } from '../../types';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Timestamp } from 'firebase/firestore';
 import { scheduleDueReminder } from '../../lib/notificationService';
 
 export function AddQuestScreen({ navigation }: any) {
@@ -33,12 +33,40 @@ export function AddQuestScreen({ navigation }: any) {
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [recurringEnabled, setRecurringEnabled] = useState(false);
+  const [recurringDays, setRecurringDays] = useState<number[]>([]);
 
   const partnerId = duo?.memberIds.find((id) => id !== user?.uid) ?? '';
 
   const categories = useMemo(() => {
     return [...DEFAULT_CATEGORIES.filter((c) => c.id !== 'all'), ...(duo?.customCategories ?? [])];
   }, [duo?.customCategories]);
+
+  const buildRecurring = (): QuestRecurring | null => {
+    if (!recurringEnabled || recurringDays.length === 0) return null;
+    const isDaily = recurringDays.length === 7;
+    const sorted = [...recurringDays].sort((a, b) => a - b);
+    const now = new Date();
+    const today = now.getDay();
+    let nextDate: Date;
+
+    if (isDaily) {
+      nextDate = new Date(now);
+      nextDate.setDate(nextDate.getDate() + 1);
+    } else {
+      const future = sorted.find((d) => d > today);
+      const diff = future !== undefined ? future - today : 7 - today + sorted[0];
+      nextDate = new Date(now);
+      nextDate.setDate(nextDate.getDate() + diff);
+    }
+    nextDate.setHours(23, 59, 0, 0);
+
+    return {
+      type: isDaily ? 'daily' : 'custom',
+      customDays: sorted,
+      nextOccurrence: Timestamp.fromDate(nextDate),
+    };
+  };
 
   const handleCreate = async () => {
     if (!title.trim() || !duo || !user) return;
@@ -52,9 +80,9 @@ export function AddQuestScreen({ navigation }: any) {
         createdBy: user.uid,
         dueDate,
         priority,
-        recurring: null,
+        recurring: buildRecurring(),
       });
-      if (dueDate && !assignToPartner) {
+      if (dueDate) {
         scheduleDueReminder(title.trim(), dueDate, '').catch(() => {});
       }
       navigation.goBack();
@@ -229,6 +257,82 @@ export function AddQuestScreen({ navigation }: any) {
             size="sm"
             style={{ marginBottom: 16 }}
           />
+        )}
+
+        {/* Repeat */}
+        <PixelText size="xs" color={colors.textSecondary} style={{ marginBottom: 8 }}>
+          Repeat
+        </PixelText>
+        <View style={{ flexDirection: 'row', gap: 8, marginBottom: recurringEnabled ? 12 : 16 }}>
+          <RPGButton
+            title="No Repeat"
+            onPress={() => { setRecurringEnabled(false); setRecurringDays([]); }}
+            variant={!recurringEnabled ? 'gold' : 'secondary'}
+            size="sm"
+            style={{ flex: 1 }}
+          />
+          <RPGButton
+            title="Repeat"
+            onPress={() => setRecurringEnabled(true)}
+            variant={recurringEnabled ? 'gold' : 'secondary'}
+            size="sm"
+            style={{ flex: 1 }}
+          />
+        </View>
+        {recurringEnabled && (
+          <View style={{ marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', gap: 6, marginBottom: 10 }}>
+              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((label, idx) => {
+                const selected = recurringDays.includes(idx);
+                return (
+                  <TouchableOpacity
+                    key={idx}
+                    onPress={() =>
+                      setRecurringDays((prev) =>
+                        selected ? prev.filter((d) => d !== idx) : [...prev, idx],
+                      )
+                    }
+                    style={{
+                      flex: 1,
+                      aspectRatio: 1,
+                      maxWidth: 42,
+                      backgroundColor: selected ? colors.accent + '30' : colors.card,
+                      borderWidth: 2,
+                      borderColor: selected ? colors.accent : colors.cardBorder,
+                      borderRadius: 4,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <PixelText size="xs" color={selected ? colors.accent : colors.textSecondary}>
+                      {label}
+                    </PixelText>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <RPGButton
+                title="Every Day"
+                onPress={() => setRecurringDays([0, 1, 2, 3, 4, 5, 6])}
+                variant={recurringDays.length === 7 ? 'gold' : 'secondary'}
+                size="sm"
+                style={{ flex: 1 }}
+              />
+              <RPGButton
+                title="Weekdays"
+                onPress={() => setRecurringDays([1, 2, 3, 4, 5])}
+                variant={
+                  recurringDays.length === 5 &&
+                  [1, 2, 3, 4, 5].every((d) => recurringDays.includes(d))
+                    ? 'gold'
+                    : 'secondary'
+                }
+                size="sm"
+                style={{ flex: 1 }}
+              />
+            </View>
+          </View>
         )}
 
         <RPGButton

@@ -43,8 +43,8 @@ export function QuestList({ quests, currentUserId, onComplete, onEdit, onDelete,
     if (pa !== pb) return pa - pb;
 
     // Then by due date (soonest first, no due date last)
-    const da = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
-    const db = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+    const da = a.dueDate ? a.dueDate.toDate().getTime() : Infinity;
+    const db = b.dueDate ? b.dueDate.toDate().getTime() : Infinity;
     if (da !== db) return da - db;
 
     return 0;
