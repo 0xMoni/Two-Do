@@ -4,7 +4,7 @@ A gamified RPG-themed to-do app for duos — couples, friends, or long-distance 
 
 ## Features
 
-- **Quest System** — Create, assign, and complete tasks as "quests" with easy/medium/hard priority and XP rewards
+- **Quest System** — Create, assign, and complete tasks as "quests" with easy/medium/hard priority, due dates, and XP rewards
 - **Duo Pairing** — Pair up with your partner via a 6-character code or QR scan and track progress together in real-time
 - **XP & Leveling** — Earn XP for completing quests, level up through 10 tiers, and celebrate with animated level-up screens
 - **Streak Tracking** — Build daily streaks by completing quests consistently
@@ -18,7 +18,8 @@ A gamified RPG-themed to-do app for duos — couples, friends, or long-distance 
 - **Quest History** — Always-visible history toggle to view completed quests with earned XP
 - **Swipe Actions** — Swipe right to complete (or undo), swipe left to edit or delete quests
 - **Pull to Refresh** — Pull down to refresh and check for expired quests
-- **Push Notifications** — Due date reminders and local notifications
+- **Recurring Quests** — Set quests to repeat on specific days of the week with day-of-week pill selectors and presets (Every Day, Weekdays). Completing a recurring quest auto-creates the next occurrence
+- **Push Notifications** — Due date reminders with deduplication, scheduled for both self-assigned and partner-assigned quests
 - **Duo Types** — Choose between Couple, Friends, or Long-Distance modes with themed interactions
 - **Account Management** — Delete account option in settings with confirmation
 - **RPG Theme** — Pixel font, XP bars, character avatars, and game-inspired UI throughout
@@ -103,9 +104,10 @@ Two-Do/
 1. **Sign up** and get a unique pairing code
 2. **Pair** with your partner by sharing codes
 3. **Create quests** and assign them to yourself or your partner
-4. **Complete quests** to earn XP — swipe right or tap the checkbox
-5. **Level up** together and unlock achievements
-6. **Stay accountable** with streaks, due dates, and real-time sync
+4. **Set up recurring quests** for habits — pick days of the week and they auto-recreate on completion
+5. **Complete quests** to earn XP — swipe right or tap the checkbox
+6. **Level up** together and unlock achievements
+7. **Stay accountable** with streaks, due dates, notifications, and real-time sync
 
 ## License
 
